@@ -17,6 +17,23 @@
         canvas {
             border: 1px solid #000;
         }
+        #try-again {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+        #try-again:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
@@ -219,6 +236,20 @@ function resetGame() {
     score = 0;
     direction = "RIGHT";
     running = true;
+
+    // Regenerate the maze with new random obstacles
+    MAZE = Array.from({ length: rows }, () => Array(cols).fill(0));
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            if (row === 0 || col === 0 || row === rows - 1 || col === cols - 1) {
+                MAZE[row][col] = 1;  // Border walls
+            } else if (Math.random() < 0.15) {
+                MAZE[row][col] = 1;  // Random wall density (15%)
+            }
+        }
+    }
+
+    // Reset snake, food, and ghosts
     snake = new Snake(100, 100, 15, 2);
     food = new Food(10);
     ghosts = [
@@ -232,6 +263,7 @@ function resetGame() {
     // Restart game loop
     gameLoop();
 }
+
 
 
 // Main game loop
@@ -255,6 +287,7 @@ function gameLoop() {
 
     if (snake.checkWallCollision() || snake.checkSelfCollision()) {
         running = false;
+        tryAgainButton.style.display = 'block'; 
         drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
         drawText(`Your Score: ${score}`, WIDTH / 2 - 100, HEIGHT / 2);
         return;
@@ -277,6 +310,7 @@ function gameLoop() {
         let distance = Math.hypot(head.x - ghost.x, head.y - ghost.y);
         if (distance < snake.radius + ghost.radius) {
             running = false;
+            tryAgainButton.style.display = 'block'; // Show Try Again button
             drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
             drawText(`Your Score: ${score}`, WIDTH / 2 - 100, HEIGHT / 2);
             return;
