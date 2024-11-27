@@ -1,0 +1,48 @@
+/* Basic reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: #121212;
+    font-family: 'Arial', sans-serif;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.game-container {
+    text-align: center;
+    border: 3px solid #fff;
+    padding: 20px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+h1.game-title {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #ffcc00;
+}
+
+canvas {
+    border: 2px solid #ffcc00;
+    display: block;
+    margin: 0 auto;
+    background: #eee;
+}
+
+.score-board {
+    margin-top: 10px;
+    font-size: 1.2rem;
+}
+
+.score-board p {
+    font-weight: bold;
+    color: #ffcc00;
+}
