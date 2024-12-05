@@ -101,12 +101,10 @@ This project is licensed under the [MIT License](LICENSE). Please refer to the L
 
 ## Acknowledgments
 
-- **[Tool/Library Name]** for [feature or functionality it provides].
-- **[Professor/Instructor Name]** for [support/advice during the project].
+- **[Mr. Kevin Omondi]** for [support/advice during the project].
 
 ---
 
-For any questions or issues, please contact us at: [email/contact]
 ```
 
 ### Key Features:
