@@ -99,6 +99,21 @@ function drawMaze() {
     }
 }
 
+// Add background music
+const backgroundMusic = new Audio('music/background.mp3');
+backgroundMusic.loop = true;  // Loop the background music
+
+// Play the music when the game starts
+function startMusic() {
+    backgroundMusic.play();
+}
+
+// Pause the music when the game ends
+function stopMusic() {
+    backgroundMusic.pause();
+    backgroundMusic.currentTime = 0;  // Reset music to start
+}
+
 // Class for Snake
 class Snake {
     constructor(x, y, radius, velocity) {
@@ -245,12 +260,11 @@ function resetGame() {
             if (row === 0 || col === 0 || row === rows - 1 || col === cols - 1) {
                 MAZE[row][col] = 1;  // Border walls
             } else if (Math.random() < 0.15) {
-                MAZE[row][col] = 1;  // Random wall density (15%)
+                MAZE[row][col] = 1;  // Random wall density
             }
         }
     }
 
-    // Reset snake, food, and ghosts
     snake = new Snake(100, 100, 15, 2);
     food = new Food(10);
     ghosts = [
@@ -258,107 +272,86 @@ function resetGame() {
         new Ghost(500, 300, 15, 1)
     ];
 
-    // Hide the "Try Again" button
     tryAgainButton.style.display = 'none';
-
-    // Restart game loop
+    startMusic();  // Restart the music
     gameLoop();
 }
 
+// Display the "Try Again" button when the game ends
+function endGame() {
+    stopMusic();  // Stop the music
+    tryAgainButton.style.display = 'inline-block';
+    drawText('Game Over', WIDTH / 2 - 100, HEIGHT / 2 - 50, 'white');
+    drawText('Score: ' + score, WIDTH / 2 - 70, HEIGHT / 2 + 20, 'white');
+}
 
-
-// Main game loop
+// Game loop
 function gameLoop() {
-    if (!running) return;
-
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    ctx.fillStyle = createGradient();
+
+    // Create background gradient
+    const gradient = createGradient();
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
+    // Draw the maze, snake, food, and ghosts
     drawMaze();
     snake.update();
     snake.draw();
     food.draw();
-
-    // Move and draw ghosts
-    for (let ghost of ghosts) {
+    ghosts.forEach(ghost => {
         ghost.moveToward(snake.body[0]);
         ghost.draw();
-    }
+    });
 
+    // Collision detection
     if (snake.checkWallCollision() || snake.checkSelfCollision()) {
         running = false;
-
-        // Update highest score if current score is higher
-        if (score > highestScore) {
-            highestScore = score;
-        }
-
-        tryAgainButton.style.display = 'block';
-        drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
-        drawText(`Your Score: ${score}`, WIDTH / 2 - 100, HEIGHT / 2);
-        drawText(`Highest Score: ${highestScore}`, WIDTH / 2 - 100, HEIGHT / 2 + 50); // Display highest score
-        return;
+        endGame();
     }
 
-    // Check for food collision
-    let head = snake.body[0];
-    let distance = Math.hypot(head.x - food.position.x, head.y - food.position.y);
-    if (distance < snake.radius + food.radius) {
+    // Check if snake eats food
+    const snakeHead = snake.body[0];
+    const dist = Math.hypot(snakeHead.x - food.position.x, snakeHead.y - food.position.y);
+    if (dist < snake.radius + food.radius) {
         score++;
         snake.length++;
-        food.position = food.spawn();  // Spawn new food
-
-        // Gradually increase snake speed (slower increase)
-        snake.velocity = Math.min(snake.velocity + 0.02, 5);  // Max speed capped at 5
+        food = new Food(10);  // Spawn a new food
     }
 
-    // Check for collision with ghosts
-    for (let ghost of ghosts) {
-        let distance = Math.hypot(head.x - ghost.x, head.y - ghost.y);
-        if (distance < snake.radius + ghost.radius) {
-            running = false;
-
-             // Update highest score if current score is higher
-             if (score > highestScore) {
-                highestScore = score;
-            }
-
-            tryAgainButton.style.display = 'block'; // Show Try Again button
-            drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
-            drawText(`Your Score: ${score}`, WIDTH / 2 - 100, HEIGHT / 2);
-            drawText(`Highest Score: ${highestScore}`, WIDTH / 2 - 100, HEIGHT / 2 + 50); // Display highest score
-            return;
-        }
+    // Increase snake speed over time
+    if (score > 0 && score % 5 === 0) {
+        snakeSpeed++;
     }
 
-    drawText(`Score: ${score}`, 10, 40);
-   // Display highest score on the top-right corner
-   const highestScoreText = `Highest Score: ${highestScore}`;
-    const textWidth = ctx.measureText(highestScoreText).width;
-    drawText(highestScoreText, WIDTH - textWidth - 10, 40);
-    requestAnimationFrame(gameLoop);  // Loop the game
+    // Draw score
+    drawText('Score: ' + score, 20, 40);
+
+    if (running) {
+        requestAnimationFrame(gameLoop);
+    }
 }
 
-// Key event listener for controlling the snake
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowUp' && direction !== "DOWN") {
-        direction = "UP";
-    } else if (e.key === 'ArrowDown' && direction !== "UP") {
-        direction = "DOWN";
-    } else if (e.key === 'ArrowLeft' && direction !== "RIGHT") {
-        direction = "LEFT";
-    } else if (e.key === 'ArrowRight' && direction !== "LEFT") {
-        direction = "RIGHT";
+// Event listener for keypresses (arrow keys)
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowUp' && direction !== 'DOWN') {
+        direction = 'UP';
+    } else if (event.key === 'ArrowDown' && direction !== 'UP') {
+        direction = 'DOWN';
+    } else if (event.key === 'ArrowLeft' && direction !== 'RIGHT') {
+        direction = 'LEFT';
+    } else if (event.key === 'ArrowRight' && direction !== 'LEFT') {
+        direction = 'RIGHT';
     }
 });
 
 // Event listener for "Try Again" button
 tryAgainButton.addEventListener('click', resetGame);
 
-
-// Start the game
+// Start the game and music
+startMusic();
 gameLoop();
+
 </script>
 </body>
 </html>
