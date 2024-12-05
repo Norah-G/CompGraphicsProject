@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game with Moving Obstacles</title>
+    <title>Snake Game with Maze and Ghosts</title>
     <style>
         body {
             margin: 0;
@@ -12,60 +12,27 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: linear-gradient(135deg, #7b3d2d, #ff6f61);
-            font-family: 'Arial', sans-serif;
+            background-color: #282c34;
         }
-
         canvas {
-            border: 2px solid #333;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
+            border: 1px solid #000;
         }
-
         #try-again {
             position: absolute;
-            top: 60%;
+            top: 70%;
             left: 50%;
             transform: translate(-50%, -50%);
-            padding: 12px 25px;
-            font-size: 22px;
-            background-color: #F9A8D4; /* Peach shade */
+            padding: 10px 20px;
+            font-size: 20px;
+            background-color: #007bff;
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
             display: none;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
-            transition: background-color 0.3s, transform 0.3s;
         }
-
         #try-again:hover {
-            background-color: #F472B6; /* Lighter peach */
-            transform: scale(1.05);
-        }
-
-        #try-again:active {
-            background-color: #EC4899; /* Darker peach */
-            transform: scale(1);
-        }
-
-        #try-again:focus {
-            outline: none;
-        }
-
-        h1 {
-            color: white;
-            text-align: center;
-            font-size: 3rem;
-            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.6);
-        }
-
-        .scoreboard {
-            color: white;
-            font-size: 24px;
-            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
-            position: absolute;
-            top: 20px;
-            left: 20px;
+            background-color: #0056b3;
         }
     </style>
 </head>
@@ -91,15 +58,23 @@ const WALL_COLOR = 'rgb(50, 50, 50)';  // Dark Gray for walls
 
 let score = 0;
 let running = true;
-let snakeSpeed = 1;  // Slower starting snake speed
-let level = 1;
+let snakeSpeed = 2;  // Slow starting snake speed
 let direction = "RIGHT";  // Initial direction
+let highestScore = 0;
 
 // Maze Layout (1 = wall, 0 = open space)
 let MAZE = Array.from({ length: rows }, () => Array(cols).fill(0));
 
-// Create fewer moving obstacles
-let movingObstacles = [];
+// Add walls (1) around the border of the maze and create random obstacles inside
+for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+        if (row === 0 || col === 0 || row === rows - 1 || col === cols - 1) {
+            MAZE[row][col] = 1;  // Border walls
+        } else if (Math.random() < 0.15) {
+            MAZE[row][col] = 1;  // Random wall density (15%)
+        }
+    }
+}
 
 // Function to create gradient background
 function createGradient() {
@@ -109,9 +84,8 @@ function createGradient() {
     return gradient;
 }
 
-// Draw the maze layout with moving obstacles
+// Draw the maze layout
 function drawMaze() {
-    // Draw static walls
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
             if (MAZE[row][col] === 1) {
@@ -123,12 +97,6 @@ function drawMaze() {
             }
         }
     }
-
-    // Move and draw moving obstacles
-    movingObstacles.forEach(obs => {
-        obs.move();
-        obs.draw();
-    });
 }
 
 // Class for Snake
@@ -210,24 +178,28 @@ class Food {
     }
 }
 
-// Class for Ghost (Moving Obstacle)
-class MovingObstacle {
-    constructor(x, y, radius, speed, direction) {
+// Class for Ghost
+class Ghost {
+    constructor(x, y, radius, speed) {
         this.x = x;
         this.y = y;
         this.radius = radius;
         this.speed = speed;
-        this.direction = direction;  // Direction can be 'horizontal' or 'vertical'
     }
 
-    move() {
-        if (this.direction === 'horizontal') {
-            this.x += this.speed;
-            if (this.x < 0 || this.x > WIDTH - this.radius) this.speed = -this.speed; // Reverse direction
-        } else if (this.direction === 'vertical') {
-            this.y += this.speed;
-            if (this.y < 0 || this.y > HEIGHT - this.radius) this.speed = -this.speed; // Reverse direction
+    moveToward(snakeHead) {
+        let dx = snakeHead.x - this.x;
+        let dy = snakeHead.y - this.y;
+        let distance = Math.hypot(dx, dy);
+
+        // Normalize the direction vector and move the ghost towards the snake
+        if (distance > 0) {
+            dx /= distance;
+            dy /= distance;
         }
+
+        this.x += dx * this.speed;
+        this.y += dy * this.speed;
     }
 
     draw() {
@@ -238,11 +210,13 @@ class MovingObstacle {
     }
 }
 
-// Initialize the snake, food, and moving obstacles
-let snake = new Snake(100, 100, 15, 1);  // Slow starting snake speed
+// Initialize the snake, food, and ghosts
+let snake = new Snake(100, 100, 15, 2);  // Initial snake position and velocity
 let food = new Food(10);  // Initial food size
-movingObstacles.push(new MovingObstacle(200, 200, 15, 1, 'horizontal'));
-movingObstacles.push(new MovingObstacle(400, 400, 15, -1, 'vertical'));
+let ghosts = [
+    new Ghost(300, 200, 15, 1),
+    new Ghost(500, 300, 15, 1)
+];
 
 // Draw text function
 function drawText(text, x, y, color = WHITE) {
@@ -253,86 +227,138 @@ function drawText(text, x, y, color = WHITE) {
 
 // Try Again Button
 const tryAgainButton = document.createElement('button');
-tryAgainButton.innerHTML = 'Try Again';
+tryAgainButton.textContent = 'Try Again';
 tryAgainButton.id = 'try-again';
 document.body.appendChild(tryAgainButton);
 
-// Function to restart the game
-function restartGame() {
+// Function to reset the game
+function resetGame() {
+    // Reset game state
     score = 0;
-    level = 1;
-    snakeSpeed = 1;  // Reset to slow speed
-    snake = new Snake(100, 100, 15, snakeSpeed);
-    food = new Food(10);
-    movingObstacles = [
-        new MovingObstacle(200, 200, 15, 1, 'horizontal'),
-        new MovingObstacle(400, 400, 15, -1, 'vertical')
-    ];
-    direction = 'RIGHT';
+    direction = "RIGHT";
     running = true;
+
+    // Regenerate the maze with new random obstacles
+    MAZE = Array.from({ length: rows }, () => Array(cols).fill(0));
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+            if (row === 0 || col === 0 || row === rows - 1 || col === cols - 1) {
+                MAZE[row][col] = 1;  // Border walls
+            } else if (Math.random() < 0.15) {
+                MAZE[row][col] = 1;  // Random wall density (15%)
+            }
+        }
+    }
+
+    // Reset snake, food, and ghosts
+    snake = new Snake(100, 100, 15, 2);
+    food = new Food(10);
+    ghosts = [
+        new Ghost(300, 200, 15, 1),
+        new Ghost(500, 300, 15, 1)
+    ];
+
+    // Hide the "Try Again" button
     tryAgainButton.style.display = 'none';
+
+    // Restart game loop
     gameLoop();
 }
 
-// Event listener for the "Try Again" button
-tryAgainButton.addEventListener('click', restartGame);
 
-// Game over function
-function gameOver() {
-    running = false;
-    tryAgainButton.style.display = 'block';
-}
 
 // Main game loop
 function gameLoop() {
     if (!running) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Background gradient
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
     ctx.fillStyle = createGradient();
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     drawMaze();
     snake.update();
     snake.draw();
     food.draw();
 
-    for (let obs of movingObstacles) {
-        obs.move();
-        obs.draw();
+    // Move and draw ghosts
+    for (let ghost of ghosts) {
+        ghost.moveToward(snake.body[0]);
+        ghost.draw();
     }
 
-    // Check collisions
     if (snake.checkWallCollision() || snake.checkSelfCollision()) {
-        gameOver();
+        running = false;
+
+        // Update highest score if current score is higher
+        if (score > highestScore) {
+            highestScore = score;
+        }
+
+        tryAgainButton.style.display = 'block';
+        drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
+        drawText(`Your Score: ${score}`, WIDTH / 2 - 100, HEIGHT / 2);
+        drawText(`Highest Score: ${highestScore}`, WIDTH / 2 - 100, HEIGHT / 2 + 50); // Display highest score
+        return;
     }
 
-    // Check if snake eats the food
+    // Check for food collision
     let head = snake.body[0];
-    if (Math.hypot(head.x - food.position.x, head.y - food.position.y) < snake.radius + food.radius) {
+    let distance = Math.hypot(head.x - food.position.x, head.y - food.position.y);
+    if (distance < snake.radius + food.radius) {
         score++;
         snake.length++;
-        food.position = food.spawn();  // Generate new food
+        food.position = food.spawn();  // Spawn new food
+
+        // Gradually increase snake speed (slower increase)
+        snake.velocity = Math.min(snake.velocity + 0.02, 5);  // Max speed capped at 5
     }
 
-    // Increase speed after each level
-    if (score % 5 === 0) {
-        level++;
-        snakeSpeed += 0.5;  // Speed up after each level
-        snake.velocity = snakeSpeed;
-        drawText(`Level: ${level}`, 10, 100);
+    // Check for collision with ghosts
+    for (let ghost of ghosts) {
+        let distance = Math.hypot(head.x - ghost.x, head.y - ghost.y);
+        if (distance < snake.radius + ghost.radius) {
+            running = false;
+
+             // Update highest score if current score is higher
+             if (score > highestScore) {
+                highestScore = score;
+            }
+
+            tryAgainButton.style.display = 'block'; // Show Try Again button
+            drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
+            drawText(`Your Score: ${score}`, WIDTH / 2 - 100, HEIGHT / 2);
+            drawText(`Highest Score: ${highestScore}`, WIDTH / 2 - 100, HEIGHT / 2 + 50); // Display highest score
+            return;
+        }
     }
 
-    // Display score
-    drawText(`Score: ${score}`, 10, 50);
-
-    requestAnimationFrame(gameLoop);
+    drawText(`Score: ${score}`, 10, 40);
+   // Display highest score on the top-right corner
+   const highestScoreText = `Highest Score: ${highestScore}`;
+    const textWidth = ctx.measureText(highestScoreText).width;
+    drawText(highestScoreText, WIDTH - textWidth - 10, 40);
+    requestAnimationFrame(gameLoop);  // Loop the game
 }
 
-// Start game loop
+// Key event listener for controlling the snake
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp' && direction !== "DOWN") {
+        direction = "UP";
+    } else if (e.key === 'ArrowDown' && direction !== "UP") {
+        direction = "DOWN";
+    } else if (e.key === 'ArrowLeft' && direction !== "RIGHT") {
+        direction = "LEFT";
+    } else if (e.key === 'ArrowRight' && direction !== "LEFT") {
+        direction = "RIGHT";
+    }
+});
+
+// Event listener for "Try Again" button
+tryAgainButton.addEventListener('click', resetGame);
+
+
+// Start the game
 gameLoop();
 </script>
-
 </body>
 </html>
