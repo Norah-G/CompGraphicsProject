@@ -1,208 +1,351 @@
+// script.js - Main game logic
+
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 800;
-canvas.height = 600;
-
 const WIDTH = canvas.width;
 const HEIGHT = canvas.height;
 const CELL_SIZE = 40;
-const cols = Math.floor(WIDTH / CELL_SIZE);
-const rows = Math.floor(HEIGHT / CELL_SIZE);
+const rows = HEIGHT / CELL_SIZE; // 15
+const cols = WIDTH / CELL_SIZE;  // 20
 
-const WHITE = 'rgb(255, 255, 255)';
-const BLACK = 'rgb(0, 0, 0)';
-const WALL_COLOR = 'rgb(50, 50, 50)';  // Dark Gray for walls
+// Maze (15x20), 1=wall, 0=path
+const MAZE = [
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+[1,0,1,1,1,0,1,1,1,0,1,1,1,0,1,1,1,0,0,1],
+[1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,0,1],
+[1,0,1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,1],
+[1,0,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1],
+[1,0,1,0,1,0,1,0,0,0,0,0,1,0,1,0,1,0,0,1],
+[1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1,0,1],
+[1,0,0,0,1,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1],
+[1,0,0,0,1,0,1,1,1,0,1,1,1,0,1,0,0,0,0,1],
+[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,0,1],
+[1,0,1,0,0,0,1,0,1,0,1,0,1,0,1,0,0,0,0,1],
+[1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,1],
+[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
 
-let score = 0;
-let running = true;
-let direction = "RIGHT";  // Initial direction
+// Pellets
+let pellets = [];
 
-// Maze Layout (1 = wall, 0 = open space)
-let MAZE = Array.from({ length: rows }, () => Array(cols).fill(0));
+// Pac-Man properties: start in pixels at cell (1,1)
+let pacman = {
+    x: 1*CELL_SIZE + CELL_SIZE/2,
+    y: 1*CELL_SIZE + CELL_SIZE/2,
+    radius: CELL_SIZE/2 - 5,
+    speed: 2,
+    directionX: 0,
+    directionY: 0
+};
 
-// Add walls (1) around the border of the maze and create random obstacles inside
-for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-        if (row === 0 || col === 0 || row === rows - 1 || col === cols - 1) {
-            MAZE[row][col] = 1;  // Border walls
-        } else if (Math.random() < 0.15) {
-            MAZE[row][col] = 1;  // Random wall density (15%)
-        }
-    }
-}
-
-// Function to create gradient background
-function createGradient() {
-    let gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    gradient.addColorStop(0, 'rgb(135, 206, 250)');  // Light Sky Blue
-    gradient.addColorStop(1, 'rgb(25, 25, 112)');  // Midnight Blue
-    return gradient;
-}
-
-// Draw the maze layout
-function drawMaze() {
-    for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-            if (MAZE[row][col] === 1) {
-                ctx.fillStyle = WALL_COLOR;
-                ctx.fillRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            } else {
-                ctx.strokeStyle = BLACK;
-                ctx.strokeRect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-            }
-        }
-    }
-}
-
-// Class for Snake
-class Snake {
-    constructor(x, y, radius, velocity) {
-        this.radius = radius;
-        this.velocity = velocity;
-        this.body = [{ x, y }];
-        this.length = 1;
+class Ghost {
+    constructor(row, col, speed) {
+        this.row = row;
+        this.col = col;
+        this.radius = CELL_SIZE/2 - 5;
+        this.speed = speed; 
+        this.targetRow = row;
+        this.targetCol = col;
+        this.x = this.col*CELL_SIZE + CELL_SIZE/2;
+        this.y = this.row*CELL_SIZE + CELL_SIZE/2;
     }
 
     update() {
-        let head = this.body[0];
-        let newHead;
+        let targetX = this.targetCol*CELL_SIZE + CELL_SIZE/2;
+        let targetY = this.targetRow*CELL_SIZE + CELL_SIZE/2;
 
-        if (direction === "UP") newHead = { x: head.x, y: head.y - this.velocity };
-        if (direction === "DOWN") newHead = { x: head.x, y: head.y + this.velocity };
-        if (direction === "LEFT") newHead = { x: head.x - this.velocity, y: head.y };
-        if (direction === "RIGHT") newHead = { x: head.x + this.velocity, y: head.y };
+        let dx = targetX - this.x;
+        let dy = targetY - this.y;
+        let dist = Math.hypot(dx, dy);
 
-        this.body.unshift(newHead);
-        if (this.body.length > this.length) {
-            this.body.pop();
+        if (dist < this.speed) {
+            this.x = targetX;
+            this.y = targetY;
+            this.row = this.targetRow;
+            this.col = this.targetCol;
+            this.chooseDirection();
+        } else {
+            this.x += (dx/dist)*this.speed;
+            this.y += (dy/dist)*this.speed;
         }
     }
 
-    draw() {
-        for (let segment of this.body) {
-            ctx.fillStyle = 'green';
-            ctx.beginPath();
-            ctx.arc(segment.x, segment.y, this.radius, 0, Math.PI * 2);
-            ctx.fill();
+    chooseDirection() {
+        const targetRow = Math.floor(pacman.y / CELL_SIZE);
+        const targetCol = Math.floor(pacman.x / CELL_SIZE);
+
+        let directions = [];
+        let dRow = targetRow - this.row;
+        let dCol = targetCol - this.col;
+
+        if (dRow < 0) directions.push({dx:0, dy:-1});
+        else if (dRow > 0) directions.push({dx:0, dy:1});
+        if (dCol < 0) directions.push({dx:-1, dy:0});
+        else if (dCol > 0) directions.push({dx:1,dy:0});
+
+        let allDirs = [{dx:0,dy:-1},{dx:0,dy:1},{dx:-1,dy:0},{dx:1,dy:0}];
+        for (let dir of allDirs) {
+            if (!directions.find(d=>d.dx===dir.dx && d.dy===dir.dy))
+                directions.push(dir);
         }
-    }
 
-    checkWallCollision() {
-        let head = this.body[0];
-        let row = Math.floor(head.y / CELL_SIZE);
-        let col = Math.floor(head.x / CELL_SIZE);
-
-        if (row < 0 || row >= rows || col < 0 || col >= cols || MAZE[row][col] === 1) {
-            return true;  // Snake collided with a wall or out of bounds
-        }
-        return false;
-    }
-
-    checkSelfCollision() {
-        const [head, ...body] = this.body;
-        return body.some(segment => segment.x === head.x && segment.y === head.y);
-    }
-}
-
-// Class for Food
-class Food {
-    constructor(radius) {
-        this.radius = radius;
-        this.position = this.spawn();
-    }
-
-    spawn() {
-        while (true) {
-            let x = Math.floor(Math.random() * (cols - 2)) * CELL_SIZE + CELL_SIZE / 2;
-            let y = Math.floor(Math.random() * (rows - 2)) * CELL_SIZE + CELL_SIZE / 2;
-
-            let row = Math.floor(y / CELL_SIZE);
-            let col = Math.floor(x / CELL_SIZE);
-
-            if (MAZE[row][col] === 0) {
-                return { x, y };  // Food placed in an open space
+        for (let dir of directions) {
+            let newR = this.row + dir.dy;
+            let newC = this.col + dir.dx;
+            if (isValidCell(newR,newC)) {
+                this.targetRow = newR;
+                this.targetCol = newC;
+                return;
             }
         }
+
+        this.targetRow = this.row;
+        this.targetCol = this.col;
     }
 
     draw() {
-        ctx.fillStyle = 'purple';
+        ctx.fillStyle = 'red';
         ctx.beginPath();
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
         ctx.fill();
     }
 }
 
-// Initialize the snake, food, and ghosts
-let snake = new Snake(100, 100, 15, 2);  // Initial snake position and velocity
-let food = new Food(10);  // Initial food size
+let score = 0;
+let running = false;
+let ghostSpeed = 1.5;
+let ghosts = [];
 
-// Draw text function
-function drawText(text, x, y, color = 'white') {
-    ctx.fillStyle = color;
-    ctx.font = "36px Arial";
-    ctx.fillText(text, x, y);
+function initializePellets() {
+    pellets = [];
+    for (let r=0; r<rows; r++) {
+        for (let c=0; c<cols; c++) {
+            if (MAZE[r][c] === 0) {
+                pellets.push({
+                    x: c*CELL_SIZE + CELL_SIZE/2,
+                    y: r*CELL_SIZE + CELL_SIZE/2,
+                    radius: 4
+                });
+            }
+        }
+    }
 }
 
-// Main game loop
+function drawMaze() {
+    let grad = ctx.createLinearGradient(0,0,WIDTH,HEIGHT);
+    grad.addColorStop(0, '#00072B');
+    grad.addColorStop(1, '#00044A');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,WIDTH,HEIGHT);
+
+    ctx.fillStyle = '#202040';
+    for (let r=0; r<rows; r++) {
+        for (let c=0; c<cols; c++) {
+            if (MAZE[r][c] === 1) {
+                ctx.fillRect(c*CELL_SIZE, r*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            }
+        }
+    }
+
+    ctx.fillStyle = '#FFC0CB';
+    for (let p of pellets) {
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.radius,0,Math.PI*2);
+        ctx.fill();
+    }
+}
+
+function drawPacman() {
+    ctx.fillStyle = 'yellow';
+    ctx.beginPath();
+    ctx.arc(pacman.x, pacman.y, pacman.radius, 0, Math.PI*2);
+    ctx.fill();
+}
+
+function eatPellets() {
+    for (let i=pellets.length-1; i>=0; i--) {
+        let p = pellets[i];
+        let dist = Math.hypot(pacman.x - p.x, pacman.y - p.y);
+        if (dist < pacman.radius + p.radius) {
+            pellets.splice(i,1);
+            score++;
+        }
+    }
+}
+
+function checkWin() {
+    if (pellets.length === 0) {
+        running = false;
+        stopMusic();
+        showEndMessage('You Win! Score: ' + score);
+    }
+}
+
+function checkGhostCollision() {
+    for (let g of ghosts) {
+        let dist = Math.hypot(pacman.x - g.x, pacman.y - g.y);
+        if (dist < pacman.radius + g.radius) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function updatePacman() {
+    if (pacman.directionX !== 0 || pacman.directionY !== 0) {
+        let moveX = pacman.directionX * pacman.speed;
+        let moveY = pacman.directionY * pacman.speed;
+
+        let newX = pacman.x + moveX;
+        let newY = pacman.y + moveY;
+
+        let newCol = Math.floor(newX / CELL_SIZE);
+        let newRow = Math.floor(newY / CELL_SIZE);
+
+        if (newRow < 0 || newRow >= rows || newCol < 0 || newCol >= cols || MAZE[newRow][newCol] === 1) {
+            // hit wall, don't move
+            return;
+        }
+
+        pacman.x = newX;
+        pacman.y = newY;
+    }
+}
+
+function isValidCell(r,c) {
+    return r>=0 && r<rows && c>=0 && c<cols && MAZE[r][c]===0;
+}
+
 function gameLoop() {
     if (!running) return;
 
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    ctx.fillStyle = createGradient();
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    updatePacman();
+    eatPellets();
 
+    for (let g of ghosts) {
+        g.update();
+    }
+
+    ctx.clearRect(0,0,WIDTH,HEIGHT);
     drawMaze();
-    snake.update();
-    snake.draw();
-    food.draw();
+    drawPacman();
+    for (let g of ghosts) {
+        g.draw();
+    }
 
-    if (snake.checkWallCollision() || snake.checkSelfCollision()) {
+    drawScore();
+
+    if (checkGhostCollision()) {
         running = false;
-        drawText("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 50);
+        stopMusic();
+        showEndMessage('Game Over! Score: ' + score);
         return;
     }
 
-    // Check for food collision
-    let head = snake.body[0];
-    let distance = Math.hypot(head.x - food.position.x, head.y - food.position.y);
-    if (distance < snake.radius + food.radius) {
-        score++;
-        snake.length++;
-        food.position = food.spawn();  // Spawn new food
-    }
-
-    document.getElementById("score").textContent = score;
-
-    requestAnimationFrame(gameLoop);  // Loop the game
+    checkWin();
+    requestAnimationFrame(gameLoop);
 }
 
-// Key event listener for controlling the snake
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowUp' && direction !== "DOWN") {
-        direction = "UP";
-    } else if (e.key === 'ArrowDown' && direction !== "UP") {
-        direction = "DOWN";
-    } else if (e.key === 'ArrowLeft' && direction !== "RIGHT") {
-        direction = "LEFT";
-    } else if (e.key === 'ArrowRight' && direction !== "LEFT") {
-        direction = "RIGHT";
-    }
-});
+function drawScore() {
+    ctx.fillStyle = 'white';
+    ctx.font = '24px Arial';
+    ctx.fillText('Score: ' + score, 20,30);
+}
 
-// Ensure snake starts in a valid position
-function startGame() {
-    // Ensure the snake starts in an open space
-    let startX = Math.floor(cols / 2) * CELL_SIZE + CELL_SIZE / 2;
-    let startY = Math.floor(rows / 2) * CELL_SIZE + CELL_SIZE / 2;
+function showEndMessage(message) {
+    const tryAgainButton = document.getElementById('try-again');
+    tryAgainButton.style.display = 'inline-block';
 
-    snake = new Snake(startX, startY, 15, 2);  // Reinitialize snake in the middle of the screen
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.fillText(message, WIDTH/2 - 150, HEIGHT/2);
+}
 
-    running = true;
+function resetGame(difficulty) {
     score = 0;
-    document.getElementById("score").textContent = score;
+    pacman.x = 1*CELL_SIZE + CELL_SIZE/2;
+    pacman.y = 1*CELL_SIZE + CELL_SIZE/2;
+    pacman.directionX = 0;
+    pacman.directionY = 0;
+
+    initializePellets();
+
+    let ghostCount;
+    if (difficulty === 'easy') {
+        ghostSpeed = 1.0;
+        ghostCount = 1;
+    } else if (difficulty === 'medium') {
+        ghostSpeed = 1.5;
+        ghostCount = 2;
+    } else {
+        ghostSpeed = 2.0;
+        ghostCount = 3;
+    }
+
+    pacman.speed = ghostSpeed;
+
+    let ghostPositions = [
+        {r:5,c:10},
+        {r:8,c:15},
+        {r:3,c:15}
+    ];
+    ghosts = [];
+    for (let i=0; i<ghostCount; i++) {
+        let pos = ghostPositions[i];
+        let ghost = new Ghost(pos.r, pos.c, ghostSpeed);
+        ghost.targetRow = pos.r;
+        ghost.targetCol = pos.c;
+        ghosts.push(ghost);
+    }
+
+    const tryAgainButton = document.getElementById('try-again');
+    tryAgainButton.style.display = 'none';
+    running = true;
+    startMusic();
     gameLoop();
 }
 
-// Start the game on page load
-startGame();
+let keysPressed = {};
+
+document.addEventListener('keydown', (e) => {
+    keysPressed[e.key] = true;
+
+    if (keysPressed['ArrowUp']) {
+        pacman.directionX = 0;
+        pacman.directionY = -1;
+    } else if (keysPressed['ArrowDown']) {
+        pacman.directionX = 0;
+        pacman.directionY = 1;
+    } else if (keysPressed['ArrowLeft']) {
+        pacman.directionX = -1;
+        pacman.directionY = 0;
+    } else if (keysPressed['ArrowRight']) {
+        pacman.directionX = 1;
+        pacman.directionY = 0;
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    keysPressed[e.key] = false;
+
+    // If releasing the key matches the current direction, stop moving
+    if ((e.key === 'ArrowUp' && pacman.directionY === -1) ||
+        (e.key === 'ArrowDown' && pacman.directionY === 1) ||
+        (e.key === 'ArrowLeft' && pacman.directionX === -1) ||
+        (e.key === 'ArrowRight' && pacman.directionX === 1)) {
+        pacman.directionX = 0;
+        pacman.directionY = 0;
+    }
+});
+
+document.getElementById('start-button').addEventListener('click', () => {
+    let difficulty = document.getElementById('difficulty').value;
+    resetGame(difficulty);
+});
+
+document.getElementById('try-again').addEventListener('click', () => {
+    let difficulty = document.getElementById('difficulty').value;
+    resetGame(difficulty);
+});
