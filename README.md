@@ -1,115 +1,168 @@
+# **Pac-Man Reimagined** 🎮🍒
 
-# CompGraphicsProject
+Dive into the **nostalgia-filled labyrinth** with a thrilling twist! In this game, you'll guide Pac-Man through a maze of challenges, dodge crafty ghosts, and gobble up pellets like your life depends on it (because it does). 🎩
 
-## Overview
+## **Overview**
 
-**CompGraphicsProject** is an advanced computer graphics project designed to explore and implement various rendering techniques and graphical algorithms. This project aims to provide an interactive platform for visualizing [specific concept, e.g., 3D models, lighting, shaders, animation, etc.] in a dynamic environment. It is developed with the intention of showcasing the practical application of computer graphics principles in [specific area, e.g., game development, simulations, education, etc.].
+Welcome to **Pac-Man Reimagined**, a fun and interactive web-based game where you navigate Pac-Man through a dynamic maze, avoiding the relentless ghosts that only live for the thrill of catching you. The game combines nostalgia with modern programming, offering players hours of fun and intense gameplay across various difficulty levels.
 
-Key features include:
-- [Key feature 1, e.g., Real-time rendering of 3D models]
-- [Key feature 2, e.g., Shader-based lighting effects]
-- [Key feature 3, e.g., Interactive user interface for model manipulation]
+- **Simple Controls:** Navigate with your arrow keys and outsmart those cheeky ghosts.
+- **Dynamic Gameplay:** Choose between Easy, Medium, and Hard difficulty levels for a more challenging experience.
+- **Background Music:** Let the nostalgic tunes take you back to the golden era of arcade gaming.
 
-## Prerequisites
+## **Features**
 
-Before setting up the project, ensure that you have the following installed on your machine:
+### 🟡 **Classic Pac-Man Vibes**
+- Navigate the maze, collect pellets, and avoid the infamous ghosts.
+- A visually pleasing game board with retro-inspired colors and animations.
 
-- **Operating System**: [Windows 10+, macOS 10.15+, or Linux]
-- **Software Dependencies**:
-  - [Specific version of software, e.g., Python 3.8+, Node.js, Unity, or OpenGL]
-  - Required libraries and packages:
-    - [List of libraries or frameworks, e.g., `numpy`, `glfw`, `PyOpenGL`]
-  
-### Recommended Setup
-It is recommended to use [specific IDE or development environment] for the best development experience. This project can be run on any modern system with proper graphics hardware support (OpenGL, DirectX, or Vulkan).
+### 👻 **Challenging Ghosts**
+- Each difficulty level increases the number and speed of ghosts.
+- Ghosts adapt their paths to chase you with cunning strategies.
 
-## Installation Guide
+### 🎵 **Background Music**
+- A groovy, adrenaline-pumping background score (thanks to the smooth loops from `Music.js`) that enhances your gaming vibe. Don’t like the ghosts? Dance your fears away.
 
-Follow the steps below to set up **CompGraphicsProject** on your local machine:
+### 🎮 **Levels of Difficulty**
+- **Easy:** 1 ghost, perfect for beginners (or your grandma).
+- **Medium:** 2 ghosts, a solid challenge.
+- **Hard:** 3 speedy ghosts that will haunt your dreams.
 
-1. **Clone the Repository**  
-   Clone the repository to your local machine using Git:
-   ```bash
-   git clone https://github.com/yourusername/CompGraphicsProject.git
-   ```
-2. **Navigate to the Project Directory**  
-   Move into the project folder:
-   ```bash
-   cd CompGraphicsProject
-   ```
-3. **Install Dependencies**  
-   Depending on the language and framework you're using, run the appropriate command to install the necessary dependencies.
-   - For Python projects:
-     ```bash
-     pip install -r requirements.txt
-     ```
-   - For Node.js projects:
-     ```bash
-     npm install
-     ```
-   - For Unity projects, follow the Unity setup guide in the `docs` folder.
-
-4. **Run the Project**
-   Execute the project depending on your platform:
-   - **Windows**: Run `CompGraphicsProject.exe`
-   - **macOS**: Open the project using Xcode or run from terminal: `./CompGraphicsProject.app`
-   - **Linux**: Run from the terminal: `./CompGraphicsProject`
-
-## Key Features and Functionality
-
-### Interactive 3D Rendering
-- **Real-Time Rendering**: The core of this project is its ability to render 3D models in real-time, providing dynamic visualization of computational graphics.
-- **Shader Effects**: Custom shaders are implemented for realistic lighting, shadows, and materials, enabling advanced visual effects.
-- **User Interactivity**: Users can manipulate the models and observe real-time changes in the scene via mouse or keyboard controls.
-
-### Background Music
-This project includes a carefully selected background music track that enhances the overall user experience. The music is intended to complement the graphical features and create an immersive environment.
-
-- **Composer**: [Veronah Kartel]
-- **Track Name**: [M1]
-- **License**: [MIT License, Creative Commons]
-
-## Usage
-
-### Controls
-- **Mouse**: Rotate and zoom in/out the scene.
-- **Keyboard**:
-  - `W`: Move forward
-  - `S`: Move backward
-  - `A`: Strafe left
-  - `D`: Strafe right
-  - [Other controls]
-
-### Visual Features
-- **Model Manipulation**: Users can load different 3D models and interact with them in the viewport.
-- **Scene Lighting**: Real-time adjustment of scene lighting using different lighting models such as point lights, directional lights, and spotlights.
-
-## Contributing
-
-We welcome contributions to **CompGraphicsProject** from both novice and expert developers. To contribute:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix.
-3. Make changes and ensure that they are thoroughly tested.
-4. Submit a pull request with a detailed description of your changes.
-
-Please refer to the [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
-
-## License
-
-This project is licensed under the [MIT License](LICENSE). Please refer to the LICENSE file for full details.
-
-## Acknowledgments
-
-- **[Mr. Kevin Omondi]** for [support/advice during the project].
+### 🎯 **Responsive UI**
+- Smooth gameplay on any modern browser.
+- Intuitive controls and dynamic visuals to keep you engaged.
 
 ---
 
-```
+## **Game Preview**
 
-### Key Features:
-- **Concise Overview**: Starts with a concise yet detailed explanation of the project’s purpose, suitable for academic or professional settings.
-- **Clear Setup Instructions**: Provides step-by-step instructions for setup and installation.
-- **Professional Language**: Written in a clean, formal tone expected in academic projects.
-- **Acknowledgments**: Includes space to acknowledge any tools, libraries, or individuals who contributed to the project.
-- **Contribution Guidelines**: Encourages others to contribute with a formal guide, making it suitable for collaboration.
+### Gameplay Screenshots
+#### Main Gameplay:
+![Game in action](![Screenshot 2024-12-06 130943](https://github.com/user-attachments/assets/53792b7d-bbd7-4c64-98bc-75281597a08a)
+)
+
+#### Game Over (Oops!):
+![Game Over](![Screenshot 2024-12-06 131225](https://github.com/user-attachments/assets/437784cb-0341-41e9-a6dd-80fac5b54131)
+)
+
+#### Difficulty Selector:
+![Difficulty Selection](![Screenshot 2024-12-06 131243](https://github.com/user-attachments/assets/c0e44c57-6870-48e9-9675-564bc7d7e4f5)
+)
+
+---
+
+## **How to Play**
+
+1. **Start the Game:**
+   - Select your difficulty level from the dropdown.
+   - Hit the **Start Game** button.
+   - Move Pac-Man using the **arrow keys**.
+   
+2. **Objective:**
+   - Collect all pellets while avoiding ghosts.
+   - Each pellet boosts your score. 🎯
+
+3. **Ghost Encounter:**
+   - A ghost touches you = instant *Game Over*!
+   - Click **Try Again** to redeem your dignity. 😎
+
+4. **Victory:**
+   - Clear all pellets on the board for a glorious win. 
+
+---
+
+## **Installation**
+
+Follow these steps to set up the game locally:
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/Norah-G/CompGraphicsProject.git
+   cd CompGraphicsProject
+   ```
+
+2. **Serve the Game**
+   Open the `index.html` file in your browser. That’s it! No complex setups. 🍀
+
+---
+
+## **Controls**
+
+- **Arrow Keys:** Move Pac-Man:
+  - ⬆️: Up
+  - ⬇️: Down
+  - ➡️: Right
+  - ⬅️: Left
+
+- **Mouse:**
+  - Start or Restart the game by clicking the buttons.
+  - Adjust difficulty using the dropdown.
+
+---
+
+## **How It Works**
+
+### Game Elements
+1. **Maze:**
+   - Built on a grid using a 2D array (`MAZE`).
+   - Walls are marked as `1`, paths as `0`.
+
+2. **Pellets:**
+   - Auto-generated at the start of the game.
+   - Disappear when Pac-Man eats them.
+
+3. **Pac-Man:**
+   - Moves in the selected direction until hitting a wall.
+   - Controlled using keyboard events (`keydown`, `keyup`).
+
+4. **Ghosts:**
+   - Follow Pac-Man using a heuristic algorithm.
+   - Adjust their behavior based on proximity.
+
+### Technical Details
+- **Canvas API:** Renders the maze, characters, and animations.
+- **JavaScript Classes:** Simplifies the logic for entities like ghosts.
+- **Audio API:** Manages background music and sound effects.
+
+---
+
+## **Tips and Tricks**
+
+1. **Stay Sharp:**
+   Always plan your moves ahead. Ghosts don’t forgive mistakes! 🧠
+   
+2. **Use Corners:**
+   Tricky ghosts sometimes get confused at corners—use this to your advantage.
+
+3. **Difficulty Scaling:**
+   Start with **Easy** to master movement before trying harder levels.
+
+---
+
+## **Contributing**
+
+Want to add power-ups, bonus levels, or funky ghosts? Fork the repo and let your imagination run wild! Here’s how:
+1. Fork the repository.
+2. Create a feature branch:
+   ```bash
+   git checkout -b new-feature
+   ```
+3. Commit and push:
+   ```bash
+   git commit -m "Add your message"
+   git push origin new-feature
+   ```
+4. Open a pull request.
+
+---
+
+## **Acknowledgments**
+
+- **Original Pac-Man Creators:** For inspiring this modern-day homage.
+- **You:** For being curious enough to read this far. Go play already!
+- **Music.js Devs:** For keeping the vibe alive.
+
+---
+
+### 🚀 **Get Ready for the Maze Mayhem!**
+*"Warning: Side effects include ghost paranoia and an unexplained love for yellow circles."* 🟡
