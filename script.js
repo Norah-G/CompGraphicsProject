@@ -80,29 +80,50 @@ class Ghost {
         let dRow = targetRow - this.row;
         let dCol = targetCol - this.col;
 
+        // Preferred directions towards pacman
         if (dRow < 0) directions.push({dx:0, dy:-1});
         else if (dRow > 0) directions.push({dx:0, dy:1});
         if (dCol < 0) directions.push({dx:-1, dy:0});
         else if (dCol > 0) directions.push({dx:1,dy:0});
 
+        // Ensure all directions are considered if not included
         let allDirs = [{dx:0,dy:-1},{dx:0,dy:1},{dx:-1,dy:0},{dx:1,dy:0}];
         for (let dir of allDirs) {
             if (!directions.find(d=>d.dx===dir.dx && d.dy===dir.dy))
                 directions.push(dir);
         }
 
+        // Try directions in order
+        let chosen = false;
         for (let dir of directions) {
             let newR = this.row + dir.dy;
             let newC = this.col + dir.dx;
             if (isValidCell(newR,newC)) {
                 this.targetRow = newR;
                 this.targetCol = newC;
-                return;
+                chosen = true;
+                break;
             }
         }
 
-        this.targetRow = this.row;
-        this.targetCol = this.col;
+        // If no direction found, randomly pick any open direction
+        if (!chosen) {
+            let validDirs = allDirs.filter(dir => {
+                let newR = this.row + dir.dy;
+                let newC = this.col + dir.dx;
+                return isValidCell(newR,newC);
+            });
+
+            if (validDirs.length > 0) {
+                let randomDir = validDirs[Math.floor(Math.random()*validDirs.length)];
+                this.targetRow = this.row + randomDir.dy;
+                this.targetCol = this.col + randomDir.dx;
+            } else {
+                // If absolutely no direction is open, stay put
+                this.targetRow = this.row;
+                this.targetCol = this.col;
+            }
+        }
     }
 
     draw() {
